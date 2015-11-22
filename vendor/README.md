@@ -1,0 +1,1 @@
+This folder should contain the zImage kernel and the original boot.img for your device.

@@ -1,0 +1,5 @@
+*.cpio.gz
+*.swp
+*.img
+zImage
+tools/unmkbootimg

@@ -1,0 +1,19 @@
+#!/sbin/busybox sh
+
+#
+# Debian environment boot init script
+#
+# Leave all the initialization process to the Android init to handle
+#
+
+/sbin/busybox echo "initializing stage2" > /android/log/stage2.1.log
+/sbin/busybox sync
+
+# Launch delayed init script
+/etc/init.stage2 >/android/log/boot.log 2>&1 &
+
+/sbin/busybox echo "chrooting to android" > /android/log/stage2.2.log
+/sbin/busybox sync
+
+# Transfer control to Android init - never returns
+exec /sbin/busybox chroot /android /init

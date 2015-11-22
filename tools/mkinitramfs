@@ -1,0 +1,6 @@
+#!/bin/bash
+if [ $# -ne 1 ];
+	then echo "Usage: $0 <directory>"; exit 1
+fi
+
+cd $1 && find . | cpio --quiet -H newc -o | gzip > $OLDPWD/$1.cpio.gz
