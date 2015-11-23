@@ -1,1 +1,1 @@
-This folder should contain the zImage kernel and the original boot.img for your device.
+This folder should contain the original boot.img (or one you want chroot'd) for your device.

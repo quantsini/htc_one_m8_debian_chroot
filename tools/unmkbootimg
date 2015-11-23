@@ -28,8 +28,8 @@ boot_format = OrderedDict(
 
 BootImageHeader = namedtuple(
     'BootImageHeader',
-    ' '.join(boot_format.keys())
-    )
+    ' '.join(boot_format.keys()),
+)
 
 
 def read_header(boot_image):
@@ -47,6 +47,13 @@ def parse_commandline():
         help='Boot Image',
         type=FileType('rb'),
     )
+    parser.add_argument(
+        '--output',
+        dest='only_types',
+        help='Only output [ramdisk|kernel|second|none]. Can be used multiple times. Defaults to outputting everything.',
+        action='append',
+        default=None,
+    )
     return parser.parse_args()
 
 
@@ -54,7 +61,13 @@ def pagesize_boundary(header, offset=0):
         return (offset + 2 * header.page_size - 1)//header.page_size * header.page_size
 
 
-def maybe_extract_kernel(header):
+def is_specified_explicitly_in_args(args, name):
+    return args.only_types is None or name in args.only_types
+
+
+def maybe_extract_kernel(header, args):
+    if not is_specified_explicitly_in_args(args, 'kernel'):
+        return
     if header.kernel_size:
         start = pagesize_boundary(header, offset=0)
         end = start + header.kernel_size
@@ -63,7 +76,9 @@ def maybe_extract_kernel(header):
         print "kernel written to 'zImage' (%s bytes)" % header.kernel_size
 
 
-def maybe_extract_ramdisk(header):
+def maybe_extract_ramdisk(header, args):
+    if not is_specified_explicitly_in_args(args, 'ramdisk'):
+        return
     if header.ramdisk_size:
         start = pagesize_boundary(header, offset=header.kernel_size)
         end = start + header.ramdisk_size
@@ -72,7 +87,9 @@ def maybe_extract_ramdisk(header):
         print "ramdisk written to 'initramfs.cpio.gz' (%s bytes)" % header.ramdisk_size
 
 
-def maybe_extract_second(header):
+def maybe_extract_second(header, args):
+    if not is_specified_explicitly_in_args(args, 'second'):
+        return
     if header.second_size:
         start = pagesize_boundary(header, offset=header.kernel_size + header.ramdisk_size)
         end = start + header.ramdisk_size
@@ -81,8 +98,7 @@ def maybe_extract_second(header):
         print "ramdisk written to initramfs.cpio.gz (%s bytes)" % header.ramdisk_size
 
 
-
-def build_mkbootimg_command(header):
+def build_mkbootimg_command(header, args):
     command = 'mkbootimg --base 0x0 --pagesize %s ' % hex(header.page_size)
     name = header.product_name.split('\0', 1)[0]
     if name:
@@ -101,18 +117,21 @@ def build_mkbootimg_command(header):
     if header.second_size:
         command += '--second %s ' % 'second'
     command += '-o boot.img'
-
     return command
+
 
 if __name__ == '__main__':
     args = parse_commandline()
     boot_image = args.boot_image.read()
     header = read_header(boot_image)
-    maybe_extract_kernel(header)
-    maybe_extract_ramdisk(header)
-    maybe_extract_second(header)
+    maybe_extract_kernel(header, args)
+    maybe_extract_ramdisk(header, args)
+    maybe_extract_second(header, args)
 
-    command = build_mkbootimg_command(header)
-    print ''
-    print 'To rebuild this boot image, you can use the command:'
-    print '  %s' % command
+    command = build_mkbootimg_command(header, args)
+    if args.only_types is not None and args.only_types:
+        print "unmkbootimg used with --output. Refusing to build a mkbootimg command."
+    else:
+        print ''
+        print 'To rebuild this boot image, you can use the command:'
+        print '  %s' % command

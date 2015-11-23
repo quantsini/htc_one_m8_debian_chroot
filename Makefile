@@ -26,7 +26,7 @@ $(BOOTIMG): $(INITRAMFS).cpio.gz $(ZIMAGE)
 	$(MKBOOTIMG) $(MKBOOTIMGARGS)
 
 $(ZIMAGE):
-	cp vendor/$(ZIMAGE) .
+	$(UNMKBOOTIMG) --output kernel vendor/boot.img
 
 $(INITRAMFS).cpio.gz:
 	$(MKINITRAMFS) $(INITRAMFS)
