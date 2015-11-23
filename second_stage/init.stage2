@@ -8,17 +8,7 @@
 
 /sbin/busybox echo "`/sbin/busybox date` Debian init stage2 started"
 
-# Wait for Android init to set up everything
-# wait for dev to be mounted by Android init
-/sbin/busybox echo "`/sbin/busybox date` Waiting on Android to mount /dev"
-while [ ! -e /android/dev/.coldboot_done ]; do
-   /sbin/busybox sleep 1
-done
-# wait for Android init to signal all done
-/sbin/busybox echo "`/sbin/busybox date` Waiting on Android init to finish"
-while [ -e /android/dev/.booting ]; do
-   /sbin/busybox sleep 1
-done
+/sbin/busybox sleep 10
 
 # Mount the /proc, /sys etc filesystems
 /sbin/busybox echo "`/sbin/busybox date` Mounting /proc /sys and /dev"

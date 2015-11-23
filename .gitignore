@@ -2,4 +2,3 @@
 *.swp
 *.img
 zImage
-tools/unmkbootimg
